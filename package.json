@@ -1,0 +1,20 @@
+{
+  "name": "aila-leadership-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20 <23"
+  },
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "check": "node --check public/app.js && node --check api/chat.js && node --check api/health.js && node --check api/transcribe.js && node --check server.mjs"
+  },
+  "dependencies": {
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "vercel": "^39.4.0"
+  }
+}

@@ -1,0 +1,32 @@
+Exact commands to run and test
+
+1) Open a terminal in this project folder.
+
+2) Install dependencies:
+npm install
+
+3) Create .env.local in the project root with:
+GROQ_API_KEY=your_real_key
+GROQ_CHAT_MODEL=llama-3.1-8b-instant
+GROQ_CHAT_FALLBACK_MODEL=llama-3.1-8b-instant
+GROQ_STT_MODEL=whisper-large-v3-turbo
+
+4) Verify syntax:
+npm run check
+
+5) Start the local app:
+npm run dev
+
+6) Open in browser:
+http://localhost:3000
+
+What to test
+- Accept the terms modal.
+- Change between all four built-in scenarios.
+- Confirm the role and counterpart cards update correctly.
+- Restart each scenario and confirm the opening line matches the selected counterpart.
+- In the compensation scenario, the AI should behave like Morgan, the hiring manager.
+- In the entry-level interview scenario, the AI should behave like Alex, the interviewer.
+- In the low-motivation scenario, the AI should behave like Jordan, the disengaged team member.
+- Confirm coaching references your actual role instead of always assuming you are a leader.
+- Test microphone and uploaded audio if needed.
