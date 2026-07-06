@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import chatHandler from './api/chat.js';
 import healthHandler from './api/health.js';
 import transcribeHandler from './api/transcribe.js';
+import ttsHandler from './api/tts.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -126,6 +127,11 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'POST' && url.pathname === '/api/transcribe') {
       return transcribeHandler(req, res);
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/tts') {
+      await parseJsonBody(req);
+      return ttsHandler(req, res);
     }
 
     if (req.method === 'GET') {

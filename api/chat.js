@@ -62,6 +62,21 @@ function getReplyField(parsed) {
   return normalizeString(parsed?.counterpartReply || parsed?.jamieReply);
 }
 
+function normalizeCommunicationAssessment(value) {
+  if (!value || typeof value !== 'object') return null;
+  const keys = ['overall', 'activeListening', 'clarity', 'empathy'];
+  const assessment = {};
+
+  for (const key of keys) {
+    const score = Number(value[key]);
+    if (!Number.isFinite(score)) return null;
+    assessment[key] = Math.max(0, Math.min(100, Math.round(score)));
+  }
+
+  assessment.tone = normalizeString(value.tone) || 'neutral';
+  return assessment;
+}
+
 function parseStructuredReply(output, mode) {
   const parsed = parseJsonObject(output);
   if (!parsed) return null;
@@ -76,8 +91,9 @@ function parseStructuredReply(output, mode) {
 
   const counterpartReply = getReplyField(parsed);
   const coachingFeedback = normalizeString(parsed.coachingFeedback);
+  const communicationAssessment = normalizeCommunicationAssessment(parsed.communicationAssessment);
   if (!counterpartReply || !coachingFeedback) return null;
-  return { counterpartReply, coachingFeedback };
+  return { counterpartReply, coachingFeedback, communicationAssessment };
 }
 
 async function requestChat(model, messages, maxTokens = 260) {

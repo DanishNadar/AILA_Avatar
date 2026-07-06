@@ -2,10 +2,13 @@ AILA Leadership Studio with Talking Avatar
 
 What is included
 - Simple friendly circular avatar under the Conversation header
-- Browser voice playback for counterpart replies using SpeechSynthesis
+- Natural Coqui XTTS-v2 playback through a Hugging Face dedicated/custom endpoint
+- Browser SpeechSynthesis fallback when Coqui is not configured or temporarily unavailable
 - Soft pulse / ring animation while the voice is speaking
 - Serverless Groq chat endpoint for the conversation
 - Serverless Groq transcription endpoint for uploaded or recorded audio
+- Continuous hands-free microphone mode with voice activity detection
+- Barge-in support that stops the avatar when the user begins speaking
 - Scenario import and JSON template download
 - Vercel-ready static frontend + API routes
 - Built-in scenarios for repairing exclusion, low motivation, compensation negotiation, and entry-level interviewing
@@ -24,6 +27,7 @@ Files that matter most
 - public/app.js -> scenario definitions, UI logic, prompt construction, roleplay behavior
 - api/chat.js -> Groq chat endpoint and JSON parsing
 - api/transcribe.js -> Groq speech-to-text endpoint
+- api/tts.js -> Hugging Face Coqui XTTS-v2 speech endpoint proxy
 - api/health.js -> health check for env and model labels
 
 How to run locally
@@ -36,6 +40,19 @@ How to run locally
    GROQ_CHAT_MODEL=llama-3.1-8b-instant
    GROQ_CHAT_FALLBACK_MODEL=llama-3.1-8b-instant
    GROQ_STT_MODEL=whisper-large-v3-turbo
+   HUGGINGFACE_TTS_ENDPOINT=https://your-dedicated-endpoint.endpoints.huggingface.cloud
+   HUGGINGFACE_TOKEN=your_hugging_face_token
+   COQUI_TTS_MODEL=coqui/XTTS-v2
+   COQUI_SPEAKER=Ana Florence
+   COQUI_LANGUAGE=en
+
+   Optional voice-cloning reference:
+   COQUI_SPEAKER_WAV_URL=https://your-public-url/reference-voice.wav
+
+   The Hugging Face endpoint must run an XTTS-v2 custom handler that accepts:
+   { "inputs": "Text to speak", "parameters": { "language": "en", "speaker": "Ana Florence" } }
+   and returns audio bytes. Hugging Face serverless inference providers do not currently
+   expose text-to-speech, so XTTS-v2 requires a dedicated/custom endpoint.
 
 4. Run the syntax check:
    npm run check
@@ -56,7 +73,10 @@ How to test it
    - Negotiating your compensation after a job offer -> the AI should sound like Morgan, a hiring manager discussing the offer
    - Interviewing for an entry-level role -> the AI should sound like Alex, an interviewer asking realistic interview follow-ups
 6. Type a message and confirm the coaching references your actual role, not always “leader”.
-7. Optionally test mic recording and uploaded audio.
+7. After accepting the terms, allow microphone access. Confirm Hands-free on appears.
+8. Speak normally and pause for about one second. The turn should transcribe and send automatically.
+9. Begin speaking while the avatar is talking. Its voice should stop immediately and your turn should be captured.
+10. Use the Hands-free button to temporarily disable or re-enable continuous listening.
 
 How to deploy on Vercel
 1. Import the repo into Vercel.
@@ -65,12 +85,21 @@ How to deploy on Vercel
    GROQ_CHAT_MODEL=llama-3.1-8b-instant
    GROQ_CHAT_FALLBACK_MODEL=llama-3.1-8b-instant
    GROQ_STT_MODEL=whisper-large-v3-turbo
+   HUGGINGFACE_TTS_ENDPOINT=https://your-dedicated-endpoint.endpoints.huggingface.cloud
+   HUGGINGFACE_TOKEN=your_hugging_face_token
+   COQUI_TTS_MODEL=coqui/XTTS-v2
+   COQUI_SPEAKER=Ana Florence
+   COQUI_LANGUAGE=en
 
 3. Deploy.
 
 Important behavior notes
-- The avatar voice uses the browser's built-in speech engine, not a separate paid TTS provider.
-- The visualizer is driven by the speaking state and boundary events from browser speech playback.
+- The avatar prefers Coqui XTTS-v2 audio from the configured Hugging Face endpoint.
+- Browser speech remains as an automatic fallback, so the conversation still works without TTS credentials.
+- Communication scores are per-turn quality averages based on model sentiment assessment, with deterministic caps for explicitly hostile or dismissive language.
+- The visualizer is driven by Coqui audio playback or browser speech events.
+- Hands-free mode keeps one microphone stream open, detects speech locally, and sends audio only after a spoken turn ends.
+- Voice activity detection uses browser echo cancellation, noise suppression, and an adaptive noise floor. Headphones still provide the most reliable barge-in behavior.
 - Terms acceptance is intentionally not persisted between page loads.
 - Conversation messages stay in browser memory for the current session only.
 - Imported scenarios are saved in browser local storage for convenience.

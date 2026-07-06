@@ -1,201 +1,551 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="midnight-purple">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AILA Leadership Studio</title>
+  <title>AILA – Leadership Studio</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <div class="background-glow"></div>
 
-  <div class="app-shell">
-    <div class="layout-grid">
-      <section class="panel hero-panel hero-span">
-        <div class="eyebrow">AILA</div>
-        <h1>AILA Leadership Studio</h1>
-        <p class="hero-copy">
-          Practice difficult conversations, reflect on your choices, and coach yourself toward stronger communication habits.
-        </p>
-      </section>
-
-      <aside class="status-column">
-        <section class="panel status-panel">
-          <div class="status-label">Provider</div>
-          <div class="status-value">Groq</div>
-        </section>
-        <section class="panel status-panel">
-          <div class="status-label">Chat model</div>
-          <div class="status-value" id="chatModelLabel">llama-3.1-8b-instant - live</div>
-        </section>
-      </aside>
-
-      <section class="panel setup-panel">
-        <h2>Practice setup</h2>
-        <p class="section-copy">Pick a preset or import more scenarios for this session.</p>
-
-        <label class="field-label" for="scenarioSelect">Preset scenario</label>
-        <select id="scenarioSelect" class="select-field"></select>
-        <p class="scenario-summary" id="scenarioSummary">
-          A teammate felt dismissed in a meeting and is unsure whether you really value their perspective.
-        </p>
-
-        <div class="meta-grid">
-          <div class="meta-card">
-            <div class="meta-label">Your role</div>
-            <div class="meta-value" id="scenarioRole"></div>
-          </div>
-          <div class="meta-card">
-            <div class="meta-label">Counterpart</div>
-            <div class="meta-value" id="scenarioCounterpart"></div>
-          </div>
-          <div class="meta-card wide-card">
-            <div class="meta-label">Leadership focus</div>
-            <div class="meta-value" id="scenarioFocus"></div>
-          </div>
-        </div>
-        <div class="button-stack">
-          <button id="restartScenarioBtn" class="btn btn-primary" type="button">Restart scenario</button>
-          <button id="importScenariosBtn" class="btn btn-secondary" type="button">Import scenarios</button>
-          <button id="downloadTemplateBtn" class="btn btn-secondary" type="button">Download template</button>
-          <input id="scenarioFileInput" type="file" accept="application/json" hidden />
-        </div>
-
-        <div class="response-section">
-          <div class="response-title">Your response</div>
-          <textarea id="messageInput" placeholder="Type what you would say in this role."></textarea>
-          <div class="help-text">Press Enter to send. Use Shift + Enter for a new line.</div>
-
-          <div class="action-row">
-            <button id="sendBtn" class="btn btn-gold" type="button">Send</button>
-            <button id="recordBtn" class="btn btn-primary" type="button">Record with mic</button>
-          </div>
-
-          <div class="action-row secondary-actions">
-            <button id="uploadAudioBtn" class="btn btn-secondary" type="button">Upload audio</button>
-            <input id="audioFileInput" type="file" accept="audio/*" hidden />
-          </div>
-
-          <div class="status-mini-grid status-mini-grid-three">
-            <div class="mini-card">
-              <div class="mini-label">Status</div>
-              <div class="mini-value" id="statusText">Ready</div>
-            </div>
-            <div class="mini-card">
-              <div class="mini-label">Microphone</div>
-              <div class="mini-value" id="micStatus">Ready</div>
-            </div>
-            <div class="mini-card">
-              <div class="mini-label">Voice</div>
-              <div class="mini-value" id="voiceStatus">Ready</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel conversation-panel">
-        <h2>Conversation</h2>
-
-        <div class="avatar-stage" aria-label="AILA voice avatar">
-          <div class="avatar-ring ring-one"></div>
-          <div class="avatar-ring ring-two"></div>
-          <div class="avatar-ring ring-three"></div>
-
-          <div class="audio-bars" aria-hidden="true">
-            <span></span><span></span><span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span><span></span><span></span>
-          </div>
-
-          <div class="avatar-core" id="ailaAvatar" data-speaking="false">
-            <div class="avatar-face">
-              <div class="avatar-eyes"><span></span><span></span></div>
-              <div class="avatar-mouth" id="avatarMouth"></div>
-            </div>
-          </div>
-        </div>
-
-        <p class="section-copy" id="conversationContext">
-          In the last meeting, Jamie raised a concern about workload distribution and the conversation moved on without real discussion.
-        </p>
-
-        <div id="conversationThread" class="conversation-thread"></div>
-      </section>
-
-      <aside class="panel coaching-panel">
-        <h2>Coaching view</h2>
-        <p class="section-copy">After each turn, AILA gives you a brief reflection to sharpen your next move.</p>
-
-        <div class="coaching-card" id="coachFeedback">Send a message to get coaching feedback.</div>
-
-        <h3>Scenario reflection prompts</h3>
-        <ul class="prompt-list">
-          <li>When did you show genuine curiosity?</li>
-          <li>Did you move to solutions too early?</li>
-        </ul>
-      </aside>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="termsModal">
+  <!-- ====== TERMS MODAL ====== -->
+  <div class="modal-overlay" id="termsModal" role="dialog" aria-modal="true" aria-labelledby="termsTitle">
     <div class="modal-card">
-      <div class="eyebrow">Before you begin</div>
-      <h2>AILA Terms of Use and Privacy Notice</h2>
-      <p class="modal-intro">
-        You must review and accept these terms before using AILA. AILA is a conversation practice tool for educational and professional development use. Effective date: 2026-03-20.
-      </p>
+      <div class="modal-logo">
+        <div class="logo-orb" aria-hidden="true"></div>
+        <span>AILA</span>
+      </div>
+      <h2 class="modal-heading" id="termsTitle">Before you begin</h2>
+      <p class="modal-intro">AILA is an AI-powered communication practice tool. Please review these terms before continuing.</p>
 
       <div class="terms-scroll">
-        <section class="term-block">
-          <h3>Purpose of the app</h3>
-          <p>AILA is designed to help users practice challenging conversations, reflect on communication choices, and learn better interpersonal strategies. It is not a substitute for legal advice, HR advice, mental health care, or emergency support.</p>
-        </section>
-
-        <section class="term-block">
-          <h3>What the app sends and does not store</h3>
-          <p>The app itself is designed not to store conversation transcripts in a database. During a session, messages are kept in browser memory so the conversation can continue. Imported scenarios can be stored locally in the browser for convenience, but acceptance of these terms is not remembered between app loads in this build.</p>
-        </section>
-
-        <section class="term-block">
-          <h3>How AI processing works</h3>
-          <p>When you send a message or audio clip, AILA sends that request through its serverless API to an external inference provider so the app can generate a response or transcribe speech. In the default production setup for this project, that provider is Groq.</p>
-        </section>
-
-        <section class="term-block">
-          <h3>Privacy and provider handling</h3>
-          <p>Groq states that customer data is not retained by default for inference requests, except in limited circumstances such as reliability troubleshooting or abuse investigation. Groq also offers a Zero Data Retention setting that an organization administrator can enable. Your deployment team is responsible for configuring provider settings appropriately.</p>
-        </section>
-
-        <section class="term-block">
-          <h3>No training promise from the app</h3>
-          <p>This application does not store your responses to build its own training set. Provider-side handling is governed by the provider's platform settings and policies.</p>
-        </section>
-
-        <section class="term-block">
+        <div class="term-block">
+          <h3>Purpose</h3>
+          <p>AILA helps you practice professional conversations in a safe environment. It is not a substitute for mental health support, legal advice, or HR guidance.</p>
+        </div>
+        <div class="term-block">
+          <h3>Privacy</h3>
+          <p>Your conversations are processed by Groq AI. Do not share personal identifying information, confidential company data, or sensitive personal details.</p>
+        </div>
+        <div class="term-block">
+          <h3>Data retention</h3>
+          <p>Conversations are not saved between sessions. Audio is transcribed server-side and immediately discarded. Imported scenarios are stored locally in your browser.</p>
+        </div>
+        <div class="term-block">
+          <h3>Hands-free microphone</h3>
+          <p>After you enter the studio, AILA requests microphone access and listens locally for speech so turns can start and stop automatically. Only detected speech clips are sent for transcription, and you can turn hands-free mode off at any time.</p>
+        </div>
+        <div class="term-block">
+          <h3>AI processing</h3>
+          <p>Responses are AI-generated and may be imperfect. Use them as practice prompts, not authoritative guidance.</p>
+        </div>
+        <div class="term-block">
           <h3>Appropriate use</h3>
-          <p>Do not submit sensitive personal data, regulated health information, payment card information, or confidential information unless your organization has approved that use and configured the provider accordingly.</p>
-        </section>
-
-        <section class="term-block">
-          <h3>User responsibility</h3>
-          <p>You are responsible for how you use the app and for reviewing AI-generated content critically. Practice conversations may be helpful, but they can still be incomplete, mistaken, or contextually imperfect.</p>
-        </section>
+          <p>Do not submit sensitive personal data, regulated health information, or confidential information. You are responsible for how you use the app and for reviewing AI-generated content critically.</p>
+        </div>
       </div>
 
-      <label class="checkbox-row">
+      <label class="terms-accept-label">
         <input type="checkbox" id="termsCheckbox" />
-        <span>I have reviewed the Terms of Use and Privacy Notice and I agree to continue.</span>
+        <span>I understand and agree to these terms</span>
       </label>
 
-      <p class="modal-footnote">
-        By continuing, you acknowledge that AILA is a practice and reflection tool and that your organization controls its deployment configuration.
-      </p>
-
-      <div class="modal-actions">
-        <button class="btn btn-gold" id="agreeBtn" type="button" disabled>Agree and continue</button>
-      </div>
+      <button class="btn-primary btn-full" id="agreeBtn" type="button" disabled>Enter Studio</button>
     </div>
   </div>
 
-  <script src="/app.js"></script>
+  <!-- ====== STANDALONE FILE INPUTS ====== -->
+  <input type="file" id="scenarioFileInput" accept="application/json" style="display:none" />
+  <input type="file" id="audioFileInput" accept="audio/*" style="display:none" />
+
+  <!-- ====== APP SHELL ====== -->
+  <div class="app-shell">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-orb" aria-hidden="true"></div>
+        <span class="logo-text">AILA</span>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Main navigation">
+        <a class="nav-item active" href="#" data-view="studio">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          Studio
+        </a>
+        <a class="nav-item" href="#" data-view="progress">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Progress
+        </a>
+        <a class="nav-item" href="#" data-view="scenarios">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Scenarios
+        </a>
+        <a class="nav-item" href="#" data-view="insights">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Insights
+        </a>
+        <a class="nav-item" href="#" data-view="settings">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          Settings
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="streak-badge">
+          <span class="streak-flame" aria-hidden="true">🔥</span>
+          <div>
+            <p class="streak-days" id="streakDays">0 day streak</p>
+            <p class="streak-msg">Keep building!</p>
+          </div>
+        </div>
+        <button class="theme-toggle-btn" id="themeToggleBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <span id="themeToggleLabel">Light mode</span>
+        </button>
+        <div class="sidebar-divider"></div>
+        <div class="profile-card">
+          <div class="profile-orb" aria-hidden="true"></div>
+          <div class="profile-info">
+            <span class="profile-name">User</span>
+            <span class="profile-plan">Free Plan</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT (multi-view) -->
+    <main class="main-content" data-active-view="studio">
+
+      <!-- ===== VIEW: STUDIO ===== -->
+      <div class="view-content view-studio">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">Welcome to AILA Studio <span class="wave" aria-hidden="true">👋</span></h1>
+            <p class="page-subtitle">Your communication growth starts with one conversation.</p>
+          </div>
+          <button class="btn-outline" type="button" id="viewInsightsBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Insights
+          </button>
+        </header>
+
+        <!-- THREE STEP FLOW CARDS -->
+        <div class="flow-cards">
+
+          <!-- 1. CHOOSE SCENARIO -->
+          <section class="flow-card" aria-labelledby="step1Label">
+            <div class="step-header">
+              <span class="step-num" aria-hidden="true">1.</span>
+              <div>
+                <h2 class="step-title" id="step1Label">Choose a scenario</h2>
+                <p class="step-desc">Practice with real-life situations.</p>
+              </div>
+            </div>
+
+            <select id="scenarioSelect" style="display:none" aria-label="Scenario selector"></select>
+
+            <div class="featured-scenario" id="featuredScenario" tabindex="0" role="button" aria-label="Current scenario">
+              <div class="featured-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              </div>
+              <div class="featured-text">
+                <p class="featured-title" id="featuredTitle">Select a scenario</p>
+                <p class="featured-desc" id="scenarioSummary">Choose from the list below to begin.</p>
+              </div>
+              <span class="featured-arrow" aria-hidden="true">›</span>
+            </div>
+
+            <div class="meta-chips" id="scenarioMetaChips">
+              <span class="meta-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                <span id="scenarioRole">—</span>
+              </span>
+              <span class="meta-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span id="scenarioCounterpart">—</span>
+              </span>
+              <span class="meta-chip meta-chip-wide">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span id="scenarioFocus">—</span>
+              </span>
+            </div>
+
+            <div class="more-scenarios-section">
+              <p class="more-scenarios-label">More scenarios</p>
+              <ul class="scenario-list" id="scenarioList" role="listbox" aria-label="Available scenarios"></ul>
+            </div>
+
+            <div class="scenario-actions">
+              <button class="btn-ghost btn-sm" id="browseScenariosBtn" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Browse all
+              </button>
+              <button class="btn-restart" id="restartScenarioBtn" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+                Restart
+              </button>
+            </div>
+          </section>
+
+          <!-- 2. START CONVERSATION -->
+          <section class="flow-card conversation-flow-card" aria-labelledby="step2Label">
+            <div class="step-header">
+              <span class="step-num" aria-hidden="true">2.</span>
+              <div>
+                <h2 class="step-title" id="step2Label">Start conversation</h2>
+                <p class="step-desc">Have a realistic conversation with AILA.</p>
+              </div>
+            </div>
+
+            <div class="avatar-stage" aria-label="AILA voice avatar">
+              <div class="avatar-ring ring-outer" aria-hidden="true"></div>
+              <div class="avatar-ring ring-mid" aria-hidden="true"></div>
+              <div class="avatar-ring ring-inner" aria-hidden="true"></div>
+              <div class="audio-bars" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+              </div>
+              <div class="avatar-core" id="ailaAvatar" data-speaking="false">
+                <div class="avatar-face">
+                  <div class="avatar-eyes"><span></span><span></span></div>
+                  <div class="avatar-mouth" id="avatarMouth"></div>
+                </div>
+              </div>
+            </div>
+
+            <p class="aila-status-line">
+              <span class="status-dot" aria-hidden="true"></span>
+              <span id="statusText">AILA is ready when you are.</span>
+            </p>
+
+            <p class="conversation-context" id="conversationContext"></p>
+
+            <div class="conversation-thread" id="conversationThread" role="log" aria-live="polite" aria-label="Conversation">
+              <div class="chat-empty-state">Select a scenario and start your conversation.</div>
+            </div>
+
+            <div class="input-area">
+              <textarea id="messageInput" rows="2" placeholder="Type what you would say in this role." aria-label="Your message"></textarea>
+              <div class="input-controls">
+                <div class="input-left">
+                  <button class="btn-chip" id="recordBtn" type="button" aria-pressed="false" title="Toggle continuous voice detection">Turn hands-free mode on</button>
+                  <button class="btn-chip" id="uploadAudioBtn" type="button">Upload</button>
+                </div>
+                <button class="btn-send" id="sendBtn" type="button" aria-label="Send message">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  Send
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- 3. GET COACHING -->
+          <section class="flow-card coaching-flow-card" aria-labelledby="step3Label">
+            <div class="step-header">
+              <span class="step-num" aria-hidden="true">3.</span>
+              <div>
+                <h2 class="step-title" id="step3Label">
+                  Get coaching
+                  <span class="coaching-badge hidden" id="coachingBadge" aria-label="New insight"></span>
+                </h2>
+                <p class="step-desc">Reflect, learn, and improve.</p>
+              </div>
+            </div>
+
+            <div class="coaching-feed" id="coachFeedback">
+              <div class="coaching-empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <p>Coaching insights appear here after each response.</p>
+              </div>
+            </div>
+
+            <div class="coaching-status-row">
+              <div class="status-chips-row">
+                <span class="status-chip">Mic: <span id="micStatus">Off</span></span>
+                <span class="status-chip">Voice: <span id="voiceStatus">Ready</span></span>
+              </div>
+              <div class="model-chips-row">
+                <span class="model-chip">Groq</span>
+                <span class="model-chip" id="chatModelLabel">llama-3.1-8b</span>
+              </div>
+            </div>
+          </section>
+
+        </div><!-- .flow-cards -->
+      </div><!-- .view-studio -->
+
+      <!-- ===== VIEW: PROGRESS ===== -->
+      <div class="view-content view-progress">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">Your Progress</h1>
+            <p class="page-subtitle">Track your communication growth over time.</p>
+          </div>
+          <button class="btn-ghost btn-sm" id="clearHistoryBtn" type="button">Clear history</button>
+        </header>
+        <div class="view-body">
+          <div class="progress-stats-row">
+            <div class="stat-card">
+              <p class="stat-value" id="statConversations">0</p>
+              <p class="stat-label">Conversations</p>
+            </div>
+            <div class="stat-card">
+              <p class="stat-value" id="statStreak">0 🔥</p>
+              <p class="stat-label">Day streak</p>
+            </div>
+            <div class="stat-card">
+              <p class="stat-value" id="statTime">0h</p>
+              <p class="stat-label">Practiced</p>
+            </div>
+          </div>
+
+          <div class="progress-chart-panel">
+            <h3 class="panel-title">Score trend</h3>
+            <div class="progress-chart-area" aria-hidden="true">
+              <svg class="progress-svg" viewBox="0 0 280 64" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--purple)" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="var(--purple)" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path d="M0,60 C40,55 70,48 105,42 C140,36 170,28 210,20 C235,14 260,9 280,4 L280,64 L0,64 Z" fill="url(#chartGrad)"/>
+                <path d="M0,60 C40,55 70,48 105,42 C140,36 170,28 210,20 C235,14 260,9 280,4" fill="none" stroke="var(--purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="280" cy="4" r="4" fill="var(--rose)"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="activity-panel">
+            <h3 class="panel-title">Recent activity</h3>
+            <ul class="activity-list" id="activityList" aria-label="Recent activity">
+              <li class="activity-empty">No recent activity yet. Start a conversation to begin!</li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- .view-progress -->
+
+      <!-- ===== VIEW: SCENARIOS ===== -->
+      <div class="view-content view-scenarios">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">Scenarios</h1>
+            <p class="page-subtitle">Browse and practice real-life conversation scenarios.</p>
+          </div>
+          <div class="page-header-actions">
+            <button class="btn-ghost btn-sm" id="importScenariosBtn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Import
+            </button>
+            <button class="btn-ghost btn-sm" id="downloadTemplateBtn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Template
+            </button>
+          </div>
+        </header>
+        <div class="view-body">
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" id="scenariosSearch" class="search-input" placeholder="Search by title, role, or focus area…" aria-label="Search scenarios" />
+          </div>
+          <div class="scenarios-view-grid" id="scenariosViewGrid"></div>
+        </div>
+      </div><!-- .view-scenarios -->
+
+      <!-- ===== VIEW: INSIGHTS ===== -->
+      <div class="view-content view-insights">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">Insights</h1>
+            <p class="page-subtitle">Deep dive into your communication performance.</p>
+          </div>
+        </header>
+        <div class="view-body">
+          <div class="insights-stats-row">
+            <div class="insight-stat-card">
+              <p class="insight-stat-label">Session score</p>
+              <p class="insight-stat-value" id="insightsScoreDisplay">—</p>
+            </div>
+            <div class="insight-stat-card">
+              <p class="insight-stat-label">Active listening</p>
+              <p class="insight-stat-value" id="insightsListeningVal">—</p>
+            </div>
+            <div class="insight-stat-card">
+              <p class="insight-stat-label">Clarity</p>
+              <p class="insight-stat-value" id="insightsClarityVal">—</p>
+            </div>
+            <div class="insight-stat-card">
+              <p class="insight-stat-label">Empathy</p>
+              <p class="insight-stat-value" id="insightsEmpathyVal">—</p>
+            </div>
+          </div>
+
+          <div class="coaching-history-section">
+            <h3 class="panel-title">Coaching history this session</h3>
+            <div class="insights-coaching-history" id="insightsCoachingHistory">
+              <div class="coaching-empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <p>Start a conversation to see coaching history.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- .view-insights -->
+
+      <!-- ===== VIEW: SETTINGS ===== -->
+      <div class="view-content view-settings">
+        <header class="page-header">
+          <div>
+            <h1 class="page-title">Settings</h1>
+            <p class="page-subtitle">Customize your AILA experience.</p>
+          </div>
+        </header>
+        <div class="view-body">
+
+          <div class="settings-section">
+            <div class="settings-section-header">
+              <div>
+                <h3 class="settings-section-title">Appearance</h3>
+                <p class="settings-section-desc">Choose a theme that fits your mood.</p>
+              </div>
+              <button class="btn-outline btn-sm" id="settingsLightDarkBtn" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                <span id="settingsLightDarkLabel">Switch to Light</span>
+              </button>
+            </div>
+
+            <div class="theme-controls">
+              <div class="search-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="search" id="themeSearch" class="search-input" placeholder="Search themes…" aria-label="Search themes" />
+              </div>
+              <div class="theme-mode-tabs">
+                <button class="theme-mode-tab active" data-mode="all" type="button">All</button>
+                <button class="theme-mode-tab" data-mode="dark" type="button">Dark</button>
+                <button class="theme-mode-tab" data-mode="light" type="button">Light</button>
+              </div>
+            </div>
+
+            <div class="themes-grid" id="themesGrid"></div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-header">
+              <div>
+                <h3 class="settings-section-title">AILA voice</h3>
+                <p class="settings-section-desc">Choose the voice style AILA uses during conversations.</p>
+              </div>
+              <button class="btn-outline btn-sm" id="voicePreviewBtn" type="button">Preview</button>
+            </div>
+
+            <div class="settings-row">
+              <div>
+                <p class="settings-row-label">Voice style</p>
+                <p class="settings-row-desc">Auto uses the configured voice when available. Feminine and masculine use your browser voices.</p>
+              </div>
+              <select class="settings-select" id="voicePreferenceSelect" aria-label="AILA voice style">
+                <option value="auto">Auto</option>
+                <option value="feminine">Feminine</option>
+                <option value="masculine">Masculine</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-header">
+              <div>
+                <h3 class="settings-section-title">Data &amp; Privacy</h3>
+                <p class="settings-section-desc">Manage your local data.</p>
+              </div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <p class="settings-row-label">Activity history</p>
+                <p class="settings-row-desc">Clear your recent conversation history stored in this browser.</p>
+              </div>
+              <button class="btn-ghost btn-sm" id="clearHistoryBtnSettings" type="button">Clear</button>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- .view-settings -->
+
+    </main><!-- .main-content -->
+
+    <!-- RIGHT INSIGHTS PANEL -->
+    <aside class="insights-panel" aria-label="Coaching insights">
+
+      <div class="insights-header">
+        <div>
+          <h2 class="insights-title">Coaching insights</h2>
+          <p class="insights-subtitle">Personalized<br>for your growth</p>
+        </div>
+        <div class="insights-orb" aria-hidden="true"></div>
+      </div>
+
+      <!-- Communication Score -->
+      <div class="score-section">
+        <p class="score-label">Communication score</p>
+        <div class="score-ring-wrap">
+          <svg class="score-ring-svg" viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <linearGradient id="scoreGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#e8709a"/>
+                <stop offset="100%" stop-color="#9b6dff"/>
+              </linearGradient>
+            </defs>
+            <circle class="score-track" cx="60" cy="60" r="50" fill="none" stroke-width="10"/>
+            <circle class="score-fill" id="scoreCircle" cx="60" cy="60" r="50" fill="none" stroke-width="10"
+              stroke="url(#scoreGrad)" stroke-dasharray="314" stroke-dashoffset="314"
+              stroke-linecap="round" transform="rotate(-90 60 60)"/>
+          </svg>
+          <div class="score-center" aria-live="polite">
+            <span class="score-pct" id="scorePct">—</span>
+            <span class="score-msg" id="scoreMsg">Start a session</span>
+          </div>
+        </div>
+        <p class="score-trend" id="scoreTrend">Complete a conversation to get your score</p>
+      </div>
+
+      <!-- Focus Areas -->
+      <div class="focus-areas">
+        <h4 class="focus-title">Focus areas</h4>
+        <div class="focus-item">
+          <div class="focus-row">
+            <span class="focus-label">Active listening</span>
+            <span class="focus-pct" id="focusListeningPct">—</span>
+          </div>
+          <div class="focus-bar-track"><div class="focus-bar-fill focus-bar-rose" id="focusListeningBar" style="width:0%"></div></div>
+        </div>
+        <div class="focus-item">
+          <div class="focus-row">
+            <span class="focus-label">Clarity</span>
+            <span class="focus-pct" id="focusClarityPct">—</span>
+          </div>
+          <div class="focus-bar-track"><div class="focus-bar-fill focus-bar-coral" id="focusClarityBar" style="width:0%"></div></div>
+        </div>
+        <div class="focus-item">
+          <div class="focus-row">
+            <span class="focus-label">Empathy</span>
+            <span class="focus-pct" id="focusEmpathyPct">—</span>
+          </div>
+          <div class="focus-bar-track"><div class="focus-bar-fill focus-bar-purple" id="focusEmpathyBar" style="width:0%"></div></div>
+        </div>
+      </div>
+
+      <!-- Motivational quote -->
+      <div class="quote-card">
+        <div class="quote-mark" aria-hidden="true">"</div>
+        <p class="quote-text">The biggest opportunity in communication is understanding, not just being understood.</p>
+        <p class="quote-attr">— AILA</p>
+      </div>
+
+    </aside>
+
+  </div><!-- .app-shell -->
+
+  <script type="module" src="/app.js"></script>
 </body>
 </html>
