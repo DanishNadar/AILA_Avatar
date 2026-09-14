@@ -55,6 +55,13 @@ const state = {
   badgeTimeout: null,
 };
 
+function scenarioPreset(scenario) {
+  return {
+    ...scenario,
+    selectLabel: scenario.selectLabel || `${scenario.title}  ${scenario.summary}`,
+  };
+}
+
 const builtInScenarios = [
   {
     id: 'repairing-exclusion',
@@ -104,6 +111,336 @@ const builtInScenarios = [
     context: 'You are interviewing for an entry-level role that you are excited about. While you may not have extensive formal experience, you have developed relevant skills through coursework, part-time roles, and other experiences.',
     starter: 'Thanks for coming in today. To get us started, can you tell me a little about yourself and what drew you to this role?',
   },
+  scenarioPreset({
+    id: 'give-clear-developmental-feedback',
+    title: 'Giving clear developmental feedback',
+    summary: 'A strong contributor has a recurring behavior that is affecting the team.',
+    role: 'the manager',
+    counterpart: 'Priya - a high-performing employee who may feel surprised by the feedback',
+    focus: 'specific feedback, empathy, accountability, development',
+    intent: 'Address a repeated behavior directly without making the person defensive. The counterpart should want to understand the impact and test whether the manager is fair and specific.',
+    context: 'Priya consistently produces excellent work, but has twice overridden colleagues during project reviews, leaving them reluctant to contribute.',
+    starter: 'I know you wanted to talk about the last project review. Is something wrong with my work?',
+  }),
+  scenarioPreset({
+    id: 'resolve-conflict-between-teammates',
+    title: 'Resolving conflict between teammates',
+    summary: 'Two teammates disagree over ownership and one wants you to take a side.',
+    role: 'the team lead',
+    counterpart: 'Mateo - a teammate who feels another colleague is taking credit',
+    focus: 'conflict resolution, neutrality, fact finding, fairness',
+    intent: 'De-escalate a conflict while gathering specifics and protecting working relationships. The counterpart should be frustrated and seek validation, but respond to balanced leadership.',
+    context: 'Mateo says Taylor presented shared work as their own in a leadership update. The two must still collaborate on a deadline next week.',
+    starter: 'I am tired of this. Taylor took credit again, and I need you to do something about it.',
+  }),
+  scenarioPreset({
+    id: 'delegate-a-stretch-assignment',
+    title: 'Delegating a stretch assignment',
+    summary: 'You want a capable employee to lead work that feels bigger than their current role.',
+    role: 'the manager',
+    counterpart: 'Avery - a capable employee who doubts they have enough experience',
+    focus: 'delegation, confidence building, expectations, support',
+    intent: 'Give Avery meaningful ownership with clear guardrails, authority, and support. The counterpart should weigh the opportunity against real concerns about capacity and readiness.',
+    context: 'Avery has delivered reliably on smaller projects. You want them to lead a cross-functional launch while you remain available as a sponsor.',
+    starter: 'I appreciate you thinking of me, but I am not sure I am the right person to lead something this visible.',
+  }),
+  scenarioPreset({
+    id: 'address-a-missed-deadline',
+    title: 'Addressing a missed deadline',
+    summary: 'A deadline passed without warning and a stakeholder is now blocked.',
+    role: 'the manager',
+    counterpart: 'Sam - an employee who missed a critical deliverable',
+    focus: 'accountability, curiosity, recovery planning, trust',
+    intent: 'Address the missed commitment calmly, learn what happened, and secure a credible recovery plan. The counterpart should be embarrassed and initially explain their constraints.',
+    context: 'Sam did not deliver a client-ready briefing by Friday and did not alert anyone until the client asked for it Monday morning.',
+    starter: 'I know the briefing was not ready. I had several things come up, and I was trying to fix it before I said anything.',
+  }),
+  scenarioPreset({
+    id: 'lead-a-change-announcement',
+    title: 'Leading a difficult change announcement',
+    summary: 'Your team is losing a familiar process and worries about the impact on their work.',
+    role: 'the department lead',
+    counterpart: 'Renee - a tenured employee concerned about the new direction',
+    focus: 'change leadership, transparency, listening, clarity',
+    intent: 'Communicate a change honestly without overpromising. The counterpart should surface practical worries and look for evidence that concerns will shape implementation.',
+    context: 'The organization is consolidating two tools into a new platform next quarter. The decision is final, but the rollout approach is still being designed.',
+    starter: 'People are saying the new platform will slow us down. Was anyone on this team even consulted?',
+  }),
+  scenarioPreset({
+    id: 'push-back-on-unrealistic-scope',
+    title: 'Pushing back on unrealistic scope',
+    summary: 'A senior stakeholder wants more delivered than the team can safely complete.',
+    role: 'the project lead',
+    counterpart: 'Casey - a senior stakeholder focused on a high-visibility launch',
+    focus: 'executive communication, prioritization, influence, boundaries',
+    intent: 'Protect quality and team capacity while offering clear tradeoffs instead of a flat no. The counterpart should press for options and respond to evidence-based recommendations.',
+    context: 'Casey has asked to add three major features before a launch that is six weeks away. Your team can complete only one without moving the date or reducing quality.',
+    starter: 'This launch is important. I need all three features included—what will it take to make that happen?',
+  }),
+  scenarioPreset({
+    id: 'performance-improvement-conversation',
+    title: 'Starting a performance improvement conversation',
+    summary: 'An employee has not met expectations after prior coaching and needs a clear plan.',
+    role: 'the manager',
+    counterpart: 'Devin - an employee worried this conversation could affect their job',
+    focus: 'performance management, clarity, dignity, next steps',
+    intent: 'Explain performance expectations and support without ambiguity or unnecessary harshness. The counterpart should be anxious, ask direct questions, and need concrete examples.',
+    context: 'Devin has received coaching for missed follow-through and incomplete work over the last two months, with limited improvement.',
+    starter: 'You said this was about my progress. Am I in trouble?',
+  }),
+  scenarioPreset({
+    id: 'facilitate-a-tense-meeting',
+    title: 'Facilitating a tense team meeting',
+    summary: 'A decision meeting is becoming personal and needs to return to productive discussion.',
+    role: 'the meeting facilitator',
+    counterpart: 'Lee - a subject-matter expert who feels their concerns are being ignored',
+    focus: 'facilitation, de-escalation, inclusion, decision making',
+    intent: 'Create space for disagreement while moving the group toward a fair decision. The counterpart should be sharp at first and engage when their technical concern is accurately reflected.',
+    context: 'A product and operations group disagree about whether to delay a release. The discussion has shifted from evidence to blame.',
+    starter: 'We keep pretending this is a preference issue when the data clearly says this release is not ready.',
+  }),
+  scenarioPreset({
+    id: 'advocate-for-team-resources',
+    title: 'Advocating for team resources',
+    summary: 'You need headcount or budget from a leader who is skeptical about the request.',
+    role: 'the team manager',
+    counterpart: 'Noor - a director balancing competing budget requests',
+    focus: 'business case, influence, prioritization, executive presence',
+    intent: 'Make a crisp resource case tied to impact, risks, and tradeoffs. The counterpart should challenge vague claims and ask what happens if the request is not approved.',
+    context: 'Your team has absorbed two additional product lines without extra capacity. Quality and response times are beginning to slip.',
+    starter: 'I have several teams asking for more people. Why is your request the one I should prioritize?',
+  }),
+  scenarioPreset({
+    id: 'manage-conflicting-priorities',
+    title: 'Managing conflicting priorities upward',
+    summary: 'Two leaders have assigned urgent work that cannot both be completed this week.',
+    role: 'the individual contributor',
+    counterpart: 'Dana - your manager who expects you to resolve the conflict professionally',
+    focus: 'managing up, prioritization, clarity, professionalism',
+    intent: 'Bring a recommendation and make the tradeoff visible rather than simply escalating a problem. The counterpart should ask what you have already considered.',
+    context: 'Your manager wants a board update by Thursday while another executive wants a customer analysis by Wednesday. Each task requires nearly all of your available time.',
+    starter: 'You mentioned you have competing priorities. What do you recommend we do?',
+  }),
+  scenarioPreset({
+    id: 'behavioral-interview-leadership',
+    title: 'Answering a leadership interview question',
+    summary: 'Practice a concise, evidence-based answer about leading through a challenge.',
+    role: 'the job candidate',
+    counterpart: 'Harper - an interviewer evaluating leadership potential',
+    focus: 'interviewing, STAR storytelling, leadership, executive presence',
+    intent: 'Tell a specific story with context, actions, results, and reflection. The interviewer should ask follow-ups when the answer is vague or the impact is unclear.',
+    context: 'You are interviewing for a role that requires influencing across teams, even though you may not have held a formal management title.',
+    starter: 'Tell me about a time you had to lead through a difficult situation. What did you do and what was the outcome?',
+  }),
+  scenarioPreset({
+    id: 'panel-interview-cross-functional',
+    title: 'Navigating a cross-functional panel interview',
+    summary: 'Several interviewers want to know how you work across competing functions.',
+    role: 'the job candidate',
+    counterpart: 'Quinn - a panel interviewer from a partner team',
+    focus: 'interviewing, collaboration, stakeholder management, clarity',
+    intent: 'Show how you communicate with different functions and handle disagreement. The counterpart should probe for concrete behaviors, not generic claims about teamwork.',
+    context: 'You are interviewing for a role that partners closely with product, operations, and customer-facing teams.',
+    starter: 'This role works with teams that often want different things. How do you build alignment when priorities conflict?',
+  }),
+  scenarioPreset({
+    id: 'interview-career-gap',
+    title: 'Explaining a career gap professionally',
+    summary: 'An interviewer asks about time away from traditional employment.',
+    role: 'the job candidate',
+    counterpart: 'Blake - an interviewer seeking context without needing private details',
+    focus: 'interviewing, confidence, boundaries, professional framing',
+    intent: 'Answer with confidence, disclose only what is comfortable, and redirect to your current readiness and skills. The interviewer should be courteous and ask one relevant follow-up.',
+    context: 'You took time away from work for personal reasons and are now applying for a role that fits your skills and direction.',
+    starter: 'I noticed a gap between your recent roles. Can you tell me about that period and what brings you back now?',
+  }),
+  scenarioPreset({
+    id: 'internal-promotion-interview',
+    title: 'Interviewing for an internal promotion',
+    summary: 'You need to advocate for your readiness with leaders who know your current work.',
+    role: 'the internal candidate',
+    counterpart: 'Morgan - a leader assessing readiness for broader scope',
+    focus: 'career growth, self-advocacy, leadership, evidence',
+    intent: 'Describe readiness with specific outcomes, self-awareness, and a plan for the larger role. The counterpart should distinguish strong current performance from readiness for expanded leadership.',
+    context: 'A team lead role has opened. You have been a top individual contributor and have informally mentored newer teammates.',
+    starter: 'You have done strong work here. What makes you ready to take on the team lead role now?',
+  }),
+  scenarioPreset({
+    id: 'recruiter-screen-role-fit',
+    title: 'Handling a recruiter screen',
+    summary: 'Practice a focused first conversation about your background, motivation, and logistics.',
+    role: 'the job candidate',
+    counterpart: 'Taylor - a recruiter conducting an initial screen',
+    focus: 'job search, concise communication, motivation, professionalism',
+    intent: 'Give a succinct, relevant overview and ask thoughtful questions. The recruiter should evaluate fit, interest, availability, and salary expectations without becoming a full interview.',
+    context: 'You applied for a role that matches several of your strengths but represents a slight industry change.',
+    starter: 'Thanks for taking the call. Could you walk me through your background and what interested you in this opportunity?',
+  }),
+  scenarioPreset({
+    id: 'networking-conversation',
+    title: 'Making a networking conversation useful',
+    summary: 'You are meeting a professional contact and want to build rapport without asking for a job outright.',
+    role: 'the professional seeking advice',
+    counterpart: 'Jordan - an experienced contact in your target field',
+    focus: 'networking, curiosity, rapport, professional presence',
+    intent: 'Build a genuine connection, communicate your direction, and make a respectful ask for insight. The counterpart should offer more when the conversation is specific and reciprocal.',
+    context: 'A former colleague introduced you to Jordan, who works in a field you are exploring. You have 20 minutes to talk.',
+    starter: 'I am glad we could connect. What are you hoping to learn as you explore this field?',
+  }),
+  scenarioPreset({
+    id: 'follow-up-after-rejection',
+    title: 'Requesting feedback after a job rejection',
+    summary: 'You want to leave a strong impression and learn from a hiring decision.',
+    role: 'the job candidate',
+    counterpart: 'Alexis - a hiring manager who selected another candidate',
+    focus: 'professionalism, resilience, feedback seeking, relationship building',
+    intent: 'Respond gracefully to disappointing news and ask for useful feedback without pressuring the hiring manager. The counterpart should offer limited but candid insight when approached professionally.',
+    context: 'You were a finalist for a role you genuinely wanted. The hiring manager offered a brief follow-up call after choosing another candidate.',
+    starter: 'Thank you for making time. I know this was a competitive process, and I am happy to share what I can about the decision.',
+  }),
+  scenarioPreset({
+    id: 'clarify-first-week-expectations',
+    title: 'Clarifying expectations in a new role',
+    summary: 'You need alignment on priorities, decision rights, and how success will be measured.',
+    role: 'the new employee',
+    counterpart: 'Cameron - your new manager who has limited time but wants you to succeed',
+    focus: 'onboarding, expectation setting, managing up, initiative',
+    intent: 'Ask focused questions that reveal priorities and reduce ambiguity. The counterpart should provide direction but expect you to synthesize it into an action plan.',
+    context: 'You are in your first week. Several people have assigned work, but you have not yet discussed near-term goals with your manager.',
+    starter: 'Welcome aboard. You have probably received a lot of information already—what would be most useful to discuss today?',
+  }),
+  scenarioPreset({
+    id: 'handle-client-escalation',
+    title: 'De-escalating an unhappy client',
+    summary: 'A client is frustrated after a mistake affected their timeline.',
+    role: 'the account lead',
+    counterpart: 'Robin - a client who needs confidence that the problem will be fixed',
+    focus: 'client communication, accountability, de-escalation, recovery',
+    intent: 'Acknowledge impact, avoid defensiveness, and agree on an actionable recovery plan. The client should press for specifics and respond to clear ownership.',
+    context: 'Your team sent the client an incorrect data file, delaying a presentation they had planned for senior leadership.',
+    starter: 'This mistake put us in a difficult position. I need to understand what happened and what you are doing to fix it.',
+  }),
+  scenarioPreset({
+    id: 'own-a-professional-mistake',
+    title: 'Owning a professional mistake',
+    summary: 'You need to tell a stakeholder about an error before they discover it themselves.',
+    role: 'the project owner',
+    counterpart: 'Emerson - a stakeholder affected by the error',
+    focus: 'accountability, concise communication, recovery planning, trust',
+    intent: 'Take responsibility early, describe impact honestly, and present a practical remedy. The counterpart should be concerned and ask whether the issue has broader consequences.',
+    context: 'You discovered that an analysis sent yesterday used an outdated assumption, which changes one of the recommended actions.',
+    starter: 'You asked to speak about the analysis. Is there an issue I need to know about?',
+  }),
+  scenarioPreset({
+    id: 'decline-work-respectfully',
+    title: 'Declining additional work respectfully',
+    summary: 'A colleague asks for urgent help when your own commitments are already full.',
+    role: 'the individual contributor',
+    counterpart: 'Kris - a colleague who needs support quickly',
+    focus: 'boundaries, prioritization, collaboration, professionalism',
+    intent: 'Set a clear boundary while remaining helpful and offering feasible alternatives. The counterpart should have a genuine need but not automatically accept an unclear no.',
+    context: 'Kris asks you to help prepare a last-minute presentation due tomorrow, while you have a major deliverable due at the same time.',
+    starter: 'I know this is late, but could you spend a few hours helping me polish this presentation tonight?',
+  }),
+  scenarioPreset({
+    id: 'negotiate-a-project-deadline',
+    title: 'Negotiating a realistic project deadline',
+    summary: 'A stakeholder wants a faster delivery than the work can responsibly support.',
+    role: 'the project owner',
+    counterpart: 'Sydney - a stakeholder with a fixed event date in mind',
+    focus: 'expectation setting, negotiation, risk communication, solutions',
+    intent: 'Explain constraints clearly and propose options with tradeoffs. The counterpart should care about the deadline and ask what can be delivered sooner.',
+    context: 'The requested project normally takes four weeks, but Sydney has asked for a complete version in ten business days.',
+    starter: 'I need this ready before the event next week. Can your team make that timeline work?',
+  }),
+  scenarioPreset({
+    id: 'give-upward-feedback',
+    title: 'Giving constructive feedback to your manager',
+    summary: 'Your manager’s communication style is creating confusion and you want to address it well.',
+    role: 'the direct report',
+    counterpart: 'Marisol - your manager, who may not realize the impact',
+    focus: 'upward feedback, courage, specificity, professionalism',
+    intent: 'Share an observable pattern and its impact while making a constructive request. The manager should be open but may need help seeing the issue through your perspective.',
+    context: 'Your manager frequently changes priorities in group chats without explaining the shift, causing duplicated work and anxiety across the team.',
+    starter: 'You said you wanted to discuss how the team is working. What is on your mind?',
+  }),
+  scenarioPreset({
+    id: 'set-after-hours-boundaries',
+    title: 'Setting after-hours boundaries',
+    summary: 'A colleague regularly sends non-urgent requests late at night and expects a quick response.',
+    role: 'the colleague setting a boundary',
+    counterpart: 'Owen - a teammate who works late and assumes others can respond then too',
+    focus: 'boundaries, directness, empathy, working agreements',
+    intent: 'Set a sustainable boundary without shaming the other person. The counterpart should explain their habit and be open to a clearer agreement if the request is specific.',
+    context: 'Owen has messaged you after 10 p.m. several times this month and followed up early the next morning when you did not answer.',
+    starter: 'I wanted to check whether you saw my message last night. I need your input before I can move forward.',
+  }),
+  scenarioPreset({
+    id: 'navigate-cross-functional-disagreement',
+    title: 'Navigating a cross-functional disagreement',
+    summary: 'A partner team rejects your proposal because it adds work for them.',
+    role: 'the proposal owner',
+    counterpart: 'Inez - a partner-team lead concerned about operational burden',
+    focus: 'collaboration, influence, active listening, problem solving',
+    intent: 'Understand the partner team’s concern before defending the proposal, then look for a workable shared solution. The counterpart should challenge assumptions and value genuine collaboration.',
+    context: 'Your proposal would improve the customer experience but requires the operations team to change a weekly workflow.',
+    starter: 'I understand the customer benefit, but this proposal adds work to my team without giving us any capacity back.',
+  }),
+  scenarioPreset({
+    id: 'redirect-workplace-gossip',
+    title: 'Redirecting workplace gossip professionally',
+    summary: 'A colleague starts speculating about a coworker’s private situation during work.',
+    role: 'the colleague redirecting the conversation',
+    counterpart: 'Bailey - a coworker who wants to keep discussing the rumor',
+    focus: 'professionalism, boundaries, respect, redirection',
+    intent: 'Set a respectful limit and redirect to appropriate work-related conversation. The counterpart should not be malicious but may minimize the concern at first.',
+    context: 'During a break, Bailey begins speculating about why another coworker has been absent and asks what you have heard.',
+    starter: 'Have you noticed that Morgan has been out again? I heard there might be something going on—do you know anything?',
+  }),
+  scenarioPreset({
+    id: 'align-hybrid-work-expectations',
+    title: 'Aligning hybrid-work expectations',
+    summary: 'A teammate feels meetings and availability expectations are uneven across remote and in-office staff.',
+    role: 'the team lead',
+    counterpart: 'Nia - a remote teammate who feels excluded from key decisions',
+    focus: 'inclusion, team norms, listening, fairness',
+    intent: 'Understand the lived experience, avoid defensiveness, and establish clear team practices. The counterpart should describe concrete examples and look for follow-through.',
+    context: 'Several important decisions have been made informally after office meetings, leaving remote teammates to catch up later.',
+    starter: 'I do not think the hybrid setup is working fairly. Important conversations keep happening after the meetings end.',
+  }),
+  scenarioPreset({
+    id: 'negotiate-with-a-vendor',
+    title: 'Negotiating with a vendor',
+    summary: 'A vendor proposes a renewal price increase that exceeds your budget.',
+    role: 'the buyer',
+    counterpart: 'Parker - a vendor representative responsible for the renewal',
+    focus: 'negotiation, preparation, relationship management, value',
+    intent: 'Negotiate firmly and professionally by discussing value, constraints, and alternatives. The vendor should protect their position but respond to a credible, collaborative proposal.',
+    context: 'Your software vendor has proposed a 15% renewal increase. Your budget allows only a modest increase, but switching providers would be disruptive.',
+    starter: 'We are glad your team has been successful with the platform. I understand you wanted to discuss the renewal proposal.',
+  }),
+  scenarioPreset({
+    id: 'ask-for-clarity-on-ambiguous-work',
+    title: 'Clarifying an ambiguous assignment',
+    summary: 'You received a broad request but need enough clarity to deliver the right outcome.',
+    role: 'the individual contributor',
+    counterpart: 'Rowan - a busy stakeholder who gave the assignment',
+    focus: 'clarifying questions, initiative, scope, professionalism',
+    intent: 'Ask focused questions about outcome, audience, priorities, and timing while showing that you have begun thinking about the work. The stakeholder should be brief but responsive to prepared questions.',
+    context: 'Rowan asked you to “put together something on customer retention” for an upcoming discussion, but did not define the audience, decision, or format.',
+    starter: 'Thanks for picking this up. What do you need from me to get started?',
+  }),
+  scenarioPreset({
+    id: 'respond-to-a-negative-review',
+    title: 'Responding to difficult performance feedback',
+    summary: 'Your manager shares a review that is more critical than you expected.',
+    role: 'the employee receiving feedback',
+    counterpart: 'Jules - your manager delivering the review',
+    focus: 'receiving feedback, self-regulation, curiosity, growth mindset',
+    intent: 'Stay composed, seek examples, and turn feedback into a development plan without becoming defensive. The manager should be direct, fair, and willing to discuss next steps.',
+    context: 'Your review recognizes strong results but says your communication with stakeholders has been inconsistent and needs improvement for advancement.',
+    starter: 'I want to walk through your review carefully. You have delivered meaningful results, and there are also areas we need to address for your growth.',
+  }),
 ];
 
 const THEMES = [
@@ -518,6 +855,32 @@ function parseModelReply(raw) {
   }
 
   throw new Error('Groq response could not be parsed into the required JSON shape.');
+}
+
+async function readApiJson(response, endpoint) {
+  const raw = await response.text();
+  let data;
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch (_) {
+    if (!response.ok && response.status === 404 && endpoint === '/api/chat') {
+      throw new Error('The chat service was not found. Run the app with npm run dev locally, or deploy the API routes and public site together.');
+    }
+    throw new Error(`${endpoint} returned an invalid response (${response.status}).`);
+  }
+
+  if (!response.ok) {
+    if (response.status === 404 && endpoint === '/api/chat') {
+      throw new Error('The chat service was not found. Run the app with npm run dev locally, or deploy the API routes and public site together.');
+    }
+    throw new Error(data?.error || `${endpoint} failed with status ${response.status}.`);
+  }
+
+  return data;
+}
+
+function updateChatModelLabel(model) {
+  if (model && elements.chatModelLabel) elements.chatModelLabel.textContent = model;
 }
 
 function setAvatarLevel(level) {
@@ -1118,6 +1481,55 @@ async function resetConversation() {
   clearCoachingFeed(false);
   setStatus('Ready');
   elements.sendBtn.disabled = false;
+
+  if (state.termsAccepted) {
+    await startScenarioConversation(state.conversationGeneration);
+  }
+}
+
+async function startScenarioConversation(generation) {
+  if (state.chatBusy || generation !== state.conversationGeneration) return;
+
+  state.chatBusy = true;
+  elements.sendBtn.disabled = true;
+  clearCoachingFeed(true);
+  setStatus('Preparing scenario...');
+
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: buildInitMessages(), mode: 'init' }),
+    });
+    const data = await readApiJson(response, '/api/chat');
+    if (generation !== state.conversationGeneration) return;
+
+    const opening = data?.structured;
+    if (!opening?.ailaIntro || !opening?.counterpartReply || !opening?.coachingFeedback) {
+      throw new Error('The chat service returned an incomplete scenario opening. Please restart the scenario.');
+    }
+
+    const counterpartReply = sanitizeCounterpartReply(opening.counterpartReply);
+    updateChatModelLabel(data.model);
+    state.messages = [
+      { role: 'assistant', displayName: 'AILA', text: String(opening.ailaIntro).trim() },
+      { role: 'assistant', displayName: getCounterpartName(), text: counterpartReply },
+    ];
+    appendCoachingBubble(String(opening.coachingFeedback).trim());
+    renderConversation();
+    setStatus('Ready');
+    speakAssistantText(counterpartReply);
+  } catch (error) {
+    if (generation !== state.conversationGeneration) return;
+    setStatus('Error');
+    clearCoachingFeed(false);
+    appendCoachingBubble(error.message || 'Unable to start the scenario.', 'error');
+  } finally {
+    if (generation === state.conversationGeneration) {
+      state.chatBusy = false;
+      elements.sendBtn.disabled = false;
+    }
+  }
 }
 
 async function sendMessage(text, options = {}) {
@@ -1144,11 +1556,9 @@ async function sendMessage(text, options = {}) {
       body: JSON.stringify({ messages: buildChatMessages(trimmed, { interrupted }), mode: 'turn' }),
     });
 
-    const data = await response.json();
+    const data = await readApiJson(response, '/api/chat');
     if (generation !== state.conversationGeneration) return;
-    if (!response.ok) {
-      throw new Error(data?.error || 'Chat request failed.');
-    }
+    updateChatModelLabel(data.model);
 
     const parsed = data?.structured?.counterpartReply && data?.structured?.coachingFeedback
       ? {
@@ -1187,10 +1597,7 @@ async function transcribeBlob(blob, filename = 'audio.webm') {
     body: formData,
   });
 
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data?.error || 'Transcription failed.');
-  }
+  const data = await readApiJson(response, '/api/transcribe');
 
   return data.text || '';
 }
@@ -1549,7 +1956,7 @@ function populateScenarioSelect() {
 async function loadHealth() {
   try {
     const response = await fetch('/api/health');
-    const data = await response.json();
+    const data = await readApiJson(response, '/api/health');
     if (response.ok && data?.chatModel) {
       elements.chatModelLabel.textContent = `${data.chatModel}`;
     }
@@ -1681,7 +2088,7 @@ function initialize() {
     state.termsAccepted = true;
     elements.termsModal.classList.add('hidden');
     setMicStatus('Off');
-    setStatus('Ready');
+    resetConversation();
   });
 
   /* Send message */

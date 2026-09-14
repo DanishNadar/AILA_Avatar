@@ -144,7 +144,24 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-const port = Number(process.env.PORT || 3000);
-server.listen(port, () => {
-  console.log(`AILA local server running at http://localhost:${port}`);
+const requestedPort = Number(process.env.PORT || 3000);
+const fallbackPort = Number(process.env.AILA_FALLBACK_PORT || requestedPort + 1);
+let activePort = requestedPort;
+let triedFallbackPort = false;
+
+server.on('error', error => {
+  if (error.code === 'EADDRINUSE' && !triedFallbackPort && fallbackPort !== activePort) {
+    triedFallbackPort = true;
+    activePort = fallbackPort;
+    console.warn(`Port ${requestedPort} is already in use. AILA is using http://localhost:${fallbackPort} instead.`);
+    server.listen(activePort);
+    return;
+  }
+
+  console.error(`AILA local server could not start on port ${activePort}: ${error.message}`);
+  process.exitCode = 1;
+});
+
+server.listen(activePort, () => {
+  console.log(`AILA local server running at http://localhost:${activePort}`);
 });

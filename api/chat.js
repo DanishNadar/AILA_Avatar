@@ -2,6 +2,65 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// llama-3.1-8b-instant was retired for Groq developer/free accounts in 2026.
+// Keep the default in one place so the health endpoint and chat endpoint cannot
+// drift apart again.
+export const DEFAULT_CHAT_MODEL = 'openai/gpt-oss-20b';
+
+function responseSchema(mode) {
+  const reply = {
+    type: 'string',
+    description: 'A concise, natural first-person reply from the scenario counterpart.'
+  };
+  const coaching = {
+    type: 'string',
+    description: 'Concise, actionable coaching for the participant.'
+  };
+
+  if (mode === 'init') {
+    return {
+      name: 'aila_scenario_opening',
+      strict: true,
+      schema: {
+        type: 'object',
+        properties: {
+          ailaIntro: { type: 'string' },
+          counterpartReply: reply,
+          coachingFeedback: coaching,
+        },
+        required: ['ailaIntro', 'counterpartReply', 'coachingFeedback'],
+        additionalProperties: false,
+      },
+    };
+  }
+
+  return {
+    name: 'aila_scenario_turn',
+    strict: true,
+    schema: {
+      type: 'object',
+      properties: {
+        counterpartReply: reply,
+        coachingFeedback: coaching,
+        communicationAssessment: {
+          type: 'object',
+          properties: {
+            overall: { type: 'number', minimum: 0, maximum: 100 },
+            activeListening: { type: 'number', minimum: 0, maximum: 100 },
+            clarity: { type: 'number', minimum: 0, maximum: 100 },
+            empathy: { type: 'number', minimum: 0, maximum: 100 },
+            tone: { type: 'string' },
+          },
+          required: ['overall', 'activeListening', 'clarity', 'empathy', 'tone'],
+          additionalProperties: false,
+        },
+      },
+      required: ['counterpartReply', 'coachingFeedback', 'communicationAssessment'],
+      additionalProperties: false,
+    },
+  };
+}
+
 function extractText(data) {
   const content = data?.choices?.[0]?.message?.content;
   if (typeof content === 'string' && content.trim()) return content.trim();
@@ -96,14 +155,18 @@ function parseStructuredReply(output, mode) {
   return { counterpartReply, coachingFeedback, communicationAssessment };
 }
 
-async function requestChat(model, messages, maxTokens = 260) {
+async function requestChat(model, messages, mode, maxTokens = 260) {
   const payload = {
     model,
     messages,
-    temperature: 0.8,
-    max_tokens: maxTokens,
+    temperature: 0.7,
+    max_completion_tokens: maxTokens,
     top_p: 0.95,
-    response_format: { type: 'json_object' }
+    // Structured Outputs avoids the intermittent malformed JSON that JSON mode
+    // can produce, especially after longer role-play conversations.
+    response_format: { type: 'json_schema', json_schema: responseSchema(mode) },
+    reasoning_effort: 'low',
+    reasoning_format: 'hidden',
   };
 
   let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -155,35 +218,48 @@ export default async function handler(req, res) {
     }
 
     const requestMode = mode === 'init' ? 'init' : 'turn';
-    const requestedModel = model || process.env.GROQ_CHAT_MODEL || 'llama-3.1-8b-instant';
-    const fallbackModel = process.env.GROQ_CHAT_FALLBACK_MODEL || 'llama-3.1-8b-instant';
+    const configuredModel = model || process.env.GROQ_CHAT_MODEL || DEFAULT_CHAT_MODEL;
+    const configuredFallback = process.env.GROQ_CHAT_FALLBACK_MODEL || DEFAULT_CHAT_MODEL;
+    const candidates = [...new Set([configuredModel, configuredFallback, DEFAULT_CHAT_MODEL].filter(Boolean))];
+    const maxTokens = requestMode === 'init' ? 320 : 260;
 
-    let { response, data } = await requestChat(requestedModel, messages, requestMode === 'init' ? 320 : 260);
+    let response;
+    let data;
+    let output = '';
+    let structured = null;
+    let selectedModel = '';
 
-    if (!response.ok) {
-      const msg = data?.error?.message || data?.error || `Groq chat failed with ${response.status}`;
-      return res.status(response.status).json({ error: msg, details: data });
-    }
+    for (const candidate of candidates) {
+      ({ response, data } = await requestChat(candidate, messages, requestMode, maxTokens));
+      if (!response.ok) {
+        // An invalid model can be repaired by trying the configured fallback.
+        // Authentication, rate-limit, and provider failures must preserve their
+        // actual error instead of pretending another model will solve them.
+        if (response.status === 400 || response.status === 404) continue;
+        const msg = data?.error?.message || data?.error || `Groq chat failed with ${response.status}`;
+        return res.status(response.status).json({ error: msg, details: data });
+      }
 
-    let output = extractText(data);
-    let structured = parseStructuredReply(output, requestMode);
-
-    if ((!output || !structured) && fallbackModel && fallbackModel !== requestedModel) {
-      ({ response, data } = await requestChat(fallbackModel, messages, requestMode === 'init' ? 320 : 260));
-      if (response.ok) {
-        output = extractText(data);
-        structured = parseStructuredReply(output, requestMode);
+      output = extractText(data);
+      structured = parseStructuredReply(output, requestMode);
+      if (output && structured) {
+        selectedModel = candidate;
+        break;
       }
     }
 
     if (!output || !structured) {
+      if (!response?.ok) {
+        const msg = data?.error?.message || data?.error || 'No configured Groq chat model is available.';
+        return res.status(response?.status || 502).json({ error: msg, details: data });
+      }
       return res.status(502).json({
         error: 'Groq returned a reply that did not match the required JSON schema.',
         details: data
       });
     }
 
-    return res.status(200).json({ output, structured, raw: data, provider: 'groq', mode: requestMode });
+    return res.status(200).json({ output, structured, raw: data, provider: 'groq', model: selectedModel, mode: requestMode });
   } catch (err) {
     return res.status(500).json({
       error: err.message || 'Server error in /api/chat'

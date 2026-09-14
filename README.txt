@@ -11,7 +11,7 @@ What is included
 - Barge-in support that stops the avatar when the user begins speaking
 - Scenario import and JSON template download
 - Vercel-ready static frontend + API routes
-- Built-in scenarios for repairing exclusion, low motivation, compensation negotiation, and entry-level interviewing
+- 34 built-in leadership, job-search, workplace-professionalism, feedback, client, and negotiation scenarios
 
 Scenario integration updates in this build
 - The three new scenarios are fully built in as presets
@@ -37,8 +37,8 @@ How to run locally
 
 3. Create a .env.local file in the project root with:
    GROQ_API_KEY=your_real_key
-   GROQ_CHAT_MODEL=llama-3.1-8b-instant
-   GROQ_CHAT_FALLBACK_MODEL=llama-3.1-8b-instant
+   GROQ_CHAT_MODEL=openai/gpt-oss-20b
+   GROQ_CHAT_FALLBACK_MODEL=openai/gpt-oss-20b
    GROQ_STT_MODEL=whisper-large-v3-turbo
    HUGGINGFACE_TTS_ENDPOINT=https://your-dedicated-endpoint.endpoints.huggingface.cloud
    HUGGINGFACE_TOKEN=your_hugging_face_token
@@ -63,6 +63,11 @@ How to run locally
 6. Open:
    http://localhost:3000
 
+   If port 3000 is already occupied, AILA automatically starts on port 3001 and
+   prints the exact local URL. Do not use a separate static-file server: it will
+   serve the interface but cannot provide the /api/chat, /api/transcribe, or
+   /api/tts endpoints.
+
 How to test it
 1. Accept the terms modal.
 2. Open each built-in scenario from the preset selector.
@@ -82,8 +87,8 @@ How to deploy on Vercel
 1. Import the repo into Vercel.
 2. Add these environment variables:
    GROQ_API_KEY=your_real_key
-   GROQ_CHAT_MODEL=llama-3.1-8b-instant
-   GROQ_CHAT_FALLBACK_MODEL=llama-3.1-8b-instant
+   GROQ_CHAT_MODEL=openai/gpt-oss-20b
+   GROQ_CHAT_FALLBACK_MODEL=openai/gpt-oss-20b
    GROQ_STT_MODEL=whisper-large-v3-turbo
    HUGGINGFACE_TTS_ENDPOINT=https://your-dedicated-endpoint.endpoints.huggingface.cloud
    HUGGINGFACE_TOKEN=your_hugging_face_token
