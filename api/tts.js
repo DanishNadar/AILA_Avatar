@@ -15,6 +15,7 @@ export default async function handler(req, res) {
   const token = process.env.HUGGINGFACE_TOKEN;
 
   if (!endpoint || !token) {
+    console.warn('[api/tts] unavailable: Hugging Face endpoint or token is not configured');
     return res.status(503).json({
       error: 'Coqui voice is not configured. Set HUGGINGFACE_TTS_ENDPOINT and HUGGINGFACE_TOKEN.',
     });
@@ -50,21 +51,39 @@ export default async function handler(req, res) {
         parameters,
         model: process.env.COQUI_TTS_MODEL || DEFAULT_MODEL,
       }),
+      signal: AbortSignal.timeout(50_000),
     });
 
     if (!response.ok) {
       const details = await response.text();
+      console.error('[api/tts] provider failed', { status: response.status });
       return res.status(response.status).json({
         error: `Hugging Face Coqui TTS failed with ${response.status}`,
         details: details.slice(0, 1000),
       });
     }
 
+    const upstreamContentType = response.headers.get('content-type') || '';
+    if (!upstreamContentType.startsWith('audio/') && !upstreamContentType.startsWith('application/octet-stream')) {
+      const details = await response.text();
+      console.error('[api/tts] provider returned a non-audio success response', { contentType: upstreamContentType });
+      return res.status(502).json({
+        error: 'Hugging Face Coqui TTS returned a non-audio response.',
+        details: details.slice(0, 1000),
+      });
+    }
+
     const audio = Buffer.from(await response.arrayBuffer());
+    if (!audio.length) {
+      console.error('[api/tts] provider returned an empty audio response');
+      return res.status(502).json({ error: 'Hugging Face Coqui TTS returned empty audio.' });
+    }
+    console.info('[api/tts] completed', { bytes: audio.length, contentType: getContentType(response) });
     res.setHeader('Content-Type', getContentType(response));
     res.setHeader('Cache-Control', 'no-store');
     return res.status(200).send(audio);
   } catch (error) {
+    console.error('[api/tts] failed', { message: error.message, name: error.name });
     return res.status(500).json({ error: error.message || 'Server error in /api/tts' });
   }
 }

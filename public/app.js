@@ -37,7 +37,12 @@ const state = {
   activeAudioUrl: null,
   ttsAbortController: null,
   ttsConfigured: false,
+  sttConfigured: false,
+  healthPromise: null,
   ttsSpeaker: '',
+  speechRecognition: null,
+  nativeTranscriptQueue: [],
+  processingNativeTranscriptQueue: false,
   voicePreference: 'auto',
   turnCount: 0,
   sessionScore: 0,
@@ -1045,6 +1050,7 @@ async function speakAssistantText(text) {
 
   setVoiceStatus('Loading Coqui');
   const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 25_000);
   state.ttsAbortController = controller;
   try {
     const response = await fetch('/api/tts', {
@@ -1085,6 +1091,8 @@ async function speakAssistantText(text) {
     console.warn('Coqui TTS unavailable; using browser voice.', error);
     cancelSpeech();
     if (!state.userSpeaking) speakWithBrowserVoice(text);
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 }
 
@@ -1602,6 +1610,86 @@ async function transcribeBlob(blob, filename = 'audio.webm') {
   return data.text || '';
 }
 
+function getSpeechRecognitionConstructor() {
+  return window.SpeechRecognition || window.webkitSpeechRecognition || null;
+}
+
+function queueNativeTranscript(transcript) {
+  const text = String(transcript || '').trim();
+  if (!text) return;
+
+  const interrupted = isAssistantVoiceActive();
+  if (interrupted) cancelSpeech();
+  state.nativeTranscriptQueue.push({ text, interrupted, generation: state.conversationGeneration });
+  processNativeTranscriptQueue();
+}
+
+async function processNativeTranscriptQueue() {
+  if (state.processingNativeTranscriptQueue) return;
+  state.processingNativeTranscriptQueue = true;
+
+  while (state.nativeTranscriptQueue.length) {
+    const { text, interrupted, generation } = state.nativeTranscriptQueue.shift();
+    if (generation !== state.conversationGeneration) continue;
+    try {
+      setMicStatus('Processing');
+      elements.messageInput.value = text;
+      while (state.chatBusy && generation === state.conversationGeneration) {
+        await new Promise(resolve => window.setTimeout(resolve, 100));
+      }
+      if (generation === state.conversationGeneration) await sendMessage(text, { interrupted });
+    } catch (error) {
+      setMicStatus('Error');
+      setStatus('Error');
+      appendCoachingBubble(error.message || 'Browser transcription failed.', 'error');
+    }
+  }
+
+  state.processingNativeTranscriptQueue = false;
+  if (state.handsFreeEnabled && !state.chatBusy) setMicStatus('Listening (browser)');
+}
+
+function startNativeSpeechRecognition() {
+  const SpeechRecognition = getSpeechRecognitionConstructor();
+  if (!SpeechRecognition) return false;
+
+  const recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.lang = document.documentElement.lang || 'en-US';
+  recognition.onresult = event => {
+    let transcript = '';
+    for (let index = event.resultIndex; index < event.results.length; index += 1) {
+      if (event.results[index].isFinal) transcript += `${event.results[index][0].transcript} `;
+    }
+    queueNativeTranscript(transcript);
+  };
+  recognition.onerror = event => {
+    if (event.error === 'aborted' || event.error === 'no-speech') return;
+    console.warn('Browser speech recognition failed.', event.error);
+    setMicStatus('Recognition error');
+    setStatus('Error');
+    appendCoachingBubble(`Browser speech recognition failed (${event.error}). Configure GROQ_API_KEY to use cloud transcription instead.`, 'error');
+  };
+  recognition.onend = () => {
+    if (!state.handsFreeEnabled || state.speechRecognition !== recognition) return;
+    window.setTimeout(() => {
+      if (state.handsFreeEnabled && state.speechRecognition === recognition) {
+        try { recognition.start(); } catch (_) {}
+      }
+    }, 250);
+  };
+
+  state.speechRecognition = recognition;
+  try {
+    recognition.start();
+    return true;
+  } catch (_) {
+    state.speechRecognition = null;
+    return false;
+  }
+}
+
 function getSupportedRecordingMimeType() {
   const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
   return types.find(type => MediaRecorder.isTypeSupported(type)) || '';
@@ -1819,6 +1907,24 @@ function monitorVoiceActivity() {
 
 async function startHandsFreeMode() {
   if (state.handsFreeEnabled) return;
+  if (state.healthPromise) await state.healthPromise;
+
+  if (!state.sttConfigured) {
+    state.handsFreeEnabled = true;
+    if (startNativeSpeechRecognition()) {
+      elements.recordBtn.textContent = 'Turn hands-free mode off';
+      elements.recordBtn.setAttribute('aria-pressed', 'true');
+      elements.recordBtn.classList.add('is-recording');
+      setMicStatus('Listening (browser)');
+      setStatus('Ready');
+      return;
+    }
+    state.handsFreeEnabled = false;
+    setMicStatus('Unavailable');
+    setStatus('Error');
+    appendCoachingBubble('Hands-free transcription needs GROQ_API_KEY, or a browser that supports SpeechRecognition. Audio uploads require GROQ_API_KEY.', 'error');
+    return;
+  }
   if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
     setMicStatus('Unavailable');
     return;
@@ -1866,6 +1972,11 @@ async function startHandsFreeMode() {
 
 async function stopHandsFreeMode() {
   state.handsFreeEnabled = false;
+  if (state.speechRecognition) {
+    state.speechRecognition.onend = null;
+    state.speechRecognition.abort();
+    state.speechRecognition = null;
+  }
   if (state.vadFrame) window.cancelAnimationFrame(state.vadFrame);
   state.vadFrame = null;
 
@@ -1960,6 +2071,7 @@ async function loadHealth() {
     if (response.ok && data?.chatModel) {
       elements.chatModelLabel.textContent = `${data.chatModel}`;
     }
+    state.sttConfigured = Boolean(response.ok && data?.sttConfigured);
     if (response.ok && data?.ttsConfigured) {
       state.ttsConfigured = true;
       state.ttsSpeaker = data.ttsSpeaker || '';
@@ -1969,7 +2081,9 @@ async function loadHealth() {
         updateVoicePreferenceUi();
       }
     }
-  } catch (_) {}
+  } catch (_) {
+    state.sttConfigured = false;
+  }
 }
 
 function warmVoices() {
@@ -2011,7 +2125,7 @@ function initialize() {
   buildStudioActionBar();
   buildFeatureModalChrome();
   resetConversation();
-  loadHealth();
+  state.healthPromise = loadHealth();
   warmVoices();
 
   /* Nav view switching */

@@ -26,7 +26,11 @@ export default async function handler(req, res) {
   }
 
   if (!process.env.GROQ_API_KEY) {
-    return res.status(500).json({ error: 'Missing GROQ_API_KEY in environment' });
+    console.warn('[api/transcribe] unavailable: GROQ_API_KEY is not configured');
+    return res.status(503).json({
+      error: 'Cloud transcription is not configured. Set GROQ_API_KEY, or use browser speech recognition for hands-free input.',
+      code: 'STT_NOT_CONFIGURED'
+    });
   }
 
   try {
@@ -35,6 +39,11 @@ export default async function handler(req, res) {
     if (!req.file?.buffer) {
       return res.status(400).json({ error: 'audio file is required' });
     }
+
+    console.info('[api/transcribe] received audio', {
+      bytes: req.file.size,
+      mimeType: req.file.mimetype || 'audio/webm',
+    });
 
     const form = new FormData();
     const blob = new Blob([req.file.buffer], { type: req.file.mimetype || 'audio/webm' });
@@ -50,7 +59,8 @@ export default async function handler(req, res) {
       headers: {
         'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
       },
-      body: form
+      body: form,
+      signal: AbortSignal.timeout(50_000),
     });
 
     const rawText = await response.text();
@@ -62,14 +72,23 @@ export default async function handler(req, res) {
     }
 
     if (!response.ok) {
+      console.error('[api/transcribe] provider failed', { status: response.status });
       return res.status(response.status).json({
         error: data?.error?.message || data?.error || `Groq transcription failed with ${response.status}`,
         details: data
       });
     }
 
+    console.info('[api/transcribe] completed', { characters: String(data?.text || '').length });
     return res.status(200).json({ text: data?.text || '' });
   } catch (err) {
+    console.error('[api/transcribe] failed', { message: err.message, code: err.code });
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'Audio files must be 25 MB or smaller.' });
+    }
+    if (err.code === 'LIMIT_UNEXPECTED_FILE' || /multipart|unexpected field/i.test(err.message || '')) {
+      return res.status(400).json({ error: 'Send one audio file in a multipart field named "audio".' });
+    }
     return res.status(500).json({
       error: err.message || 'Server error in /api/transcribe'
     });

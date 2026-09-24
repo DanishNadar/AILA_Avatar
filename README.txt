@@ -7,6 +7,7 @@ What is included
 - Soft pulse / ring animation while the voice is speaking
 - Serverless Groq chat endpoint for the conversation
 - Serverless Groq transcription endpoint for uploaded or recorded audio
+- Browser SpeechRecognition fallback for hands-free input when cloud STT is not configured
 - Continuous hands-free microphone mode with voice activity detection
 - Barge-in support that stops the avatar when the user begins speaking
 - Scenario import and JSON template download
@@ -53,6 +54,11 @@ How to run locally
    { "inputs": "Text to speak", "parameters": { "language": "en", "speaker": "Ana Florence" } }
    and returns audio bytes. Hugging Face serverless inference providers do not currently
    expose text-to-speech, so XTTS-v2 requires a dedicated/custom endpoint.
+
+   You can copy .env.example as a non-secret starting point. GROQ_API_KEY is required for
+   chat, audio uploads, and Groq transcription. If it is absent, hands-free mode uses the
+   browser's SpeechRecognition when supported. Coqui is optional: without its endpoint and
+   token, AILA automatically uses the browser's built-in speech synthesis.
 
 4. Run the syntax check:
    npm run check
@@ -101,6 +107,7 @@ How to deploy on Vercel
 Important behavior notes
 - The avatar prefers Coqui XTTS-v2 audio from the configured Hugging Face endpoint.
 - Browser speech remains as an automatic fallback, so the conversation still works without TTS credentials.
+- Audio uploads always use Groq transcription; browser speech recognition is available only for live hands-free input in supported browsers.
 - Communication scores are per-turn quality averages based on model sentiment assessment, with deterministic caps for explicitly hostile or dismissive language.
 - The visualizer is driven by Coqui audio playback or browser speech events.
 - Hands-free mode keeps one microphone stream open, detects speech locally, and sends audio only after a spoken turn ends.
