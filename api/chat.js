@@ -155,19 +155,26 @@ function parseStructuredReply(output, mode) {
   return { counterpartReply, coachingFeedback, communicationAssessment };
 }
 
-async function requestChat(model, messages, mode, maxTokens = 260) {
+async function requestChat(model, messages, mode, maxTokens = 260, compatibilityMode = false) {
   const payload = {
     model,
     messages,
     temperature: 0.7,
-    max_completion_tokens: maxTokens,
     top_p: 0.95,
-    // Structured Outputs avoids the intermittent malformed JSON that JSON mode
-    // can produce, especially after longer role-play conversations.
-    response_format: { type: 'json_schema', json_schema: responseSchema(mode) },
-    reasoning_effort: 'low',
-    reasoning_format: 'hidden',
   };
+
+  if (compatibilityMode) {
+    // Older Groq-compatible models reject json_schema, reasoning options, or
+    // max_completion_tokens with HTTP 400. JSON mode is broadly supported and
+    // the response is still validated by parseStructuredReply below.
+    payload.max_tokens = maxTokens;
+    payload.response_format = { type: 'json_object' };
+  } else {
+    payload.max_completion_tokens = maxTokens;
+    payload.response_format = { type: 'json_schema', json_schema: responseSchema(mode) };
+    payload.reasoning_effort = 'low';
+    payload.reasoning_format = 'hidden';
+  }
 
   let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -198,6 +205,11 @@ async function requestChat(model, messages, mode, maxTokens = 260) {
     data = { raw: rawText };
   }
 
+  if (response.status === 400 && !compatibilityMode) {
+    console.warn('[api/chat] structured output request was rejected; retrying JSON compatibility mode', { model });
+    return requestChat(model, messages, mode, maxTokens, true);
+  }
+
   return { response, data };
 }
 
@@ -223,6 +235,8 @@ export default async function handler(req, res) {
     const candidates = [...new Set([configuredModel, configuredFallback, DEFAULT_CHAT_MODEL].filter(Boolean))];
     const maxTokens = requestMode === 'init' ? 320 : 260;
 
+    console.info('[api/chat] request received', { mode: requestMode, messages: messages.length, candidates: candidates.length });
+
     let response;
     let data;
     let output = '';
@@ -237,6 +251,7 @@ export default async function handler(req, res) {
         // actual error instead of pretending another model will solve them.
         if (response.status === 400 || response.status === 404) continue;
         const msg = data?.error?.message || data?.error || `Groq chat failed with ${response.status}`;
+        console.error('[api/chat] provider failed', { status: response.status, model: candidate, message: msg });
         return res.status(response.status).json({ error: msg, details: data });
       }
 
@@ -244,6 +259,7 @@ export default async function handler(req, res) {
       structured = parseStructuredReply(output, requestMode);
       if (output && structured) {
         selectedModel = candidate;
+        console.info('[api/chat] completed', { mode: requestMode, model: selectedModel, characters: output.length });
         break;
       }
     }
@@ -261,6 +277,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ output, structured, raw: data, provider: 'groq', model: selectedModel, mode: requestMode });
   } catch (err) {
+    console.error('[api/chat] failed', { message: err.message, name: err.name });
     return res.status(500).json({
       error: err.message || 'Server error in /api/chat'
     });
