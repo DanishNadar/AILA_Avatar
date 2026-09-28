@@ -1974,9 +1974,8 @@ body::before {
   margin-bottom: 14px;
 }
 
-.modal-logo .logo-orb { width: 22px; height: 22px; }
 
-.modal-logo span {
+.modal-logo .modal-logo-text {
   font-size: 1rem;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -2263,7 +2262,7 @@ body::after {
 }
 
 .logo-text,
-.modal-logo span {
+.modal-logo .modal-logo-text {
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -4235,4 +4234,85 @@ textarea::-webkit-scrollbar-thumb {
   background:
     radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--rose) 8%, transparent), transparent 36%),
     color-mix(in srgb, var(--bg) 34%, transparent) !important;
+}
+
+/* =====================================================================
+   Brand mark (AILA logo)
+   ===================================================================== */
+
+.brand-mark {
+  --brand-size: 32px;
+  display: inline-block;
+  flex-shrink: 0;
+  width: var(--brand-size);
+  height: var(--brand-size);
+  background: url('/brand/aila-mark.png') center / contain no-repeat;
+  filter: drop-shadow(0 0 10px rgba(155, 109, 255, 0.45));
+  vertical-align: middle;
+}
+
+/* The logo's right stroke is white; swap to the ink variant on light themes */
+[data-theme^="light"] .brand-mark {
+  background-image: url('/brand/aila-mark-ink.png');
+  filter: drop-shadow(0 2px 6px rgba(109, 58, 230, 0.2));
+}
+
+.brand-mark-lg { --brand-size: 56px; }
+.brand-mark-xs { --brand-size: 14px; margin-right: 6px; filter: none; }
+
+.brand-mark-inline {
+  --brand-size: 30px;
+  margin: -4px 12px 0 0;
+}
+
+.message-speaker .brand-mark-xs {
+  --brand-size: 12px;
+  margin: -2px 5px 0 0;
+}
+
+.sidebar-logo .brand-mark { --brand-size: 34px; }
+
+.modal-logo {
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.modal-logo .brand-mark {
+  animation: brand-in 0.6s ease-out both;
+}
+
+@keyframes brand-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.92); }
+  to { opacity: 1; transform: none; }
+}
+
+.chat-empty-state .brand-mark-watermark {
+  --brand-size: 44px;
+  display: block;
+  margin: 0 auto 10px;
+  opacity: 0.5;
+  filter: grayscale(0.2);
+}
+
+.quote-attr {
+  display: flex;
+  align-items: center;
+}
+
+.insights-orb.insights-brand {
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 50% 40%, rgba(155, 109, 255, 0.22), rgba(20, 14, 42, 0.85) 70%);
+  border: 1px solid rgba(155, 109, 255, 0.35);
+}
+
+.insights-orb.insights-brand .brand-mark {
+  --brand-size: 28px;
+  background-image: url('/brand/aila-mark.png');
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-logo .brand-mark { animation: none; }
 }

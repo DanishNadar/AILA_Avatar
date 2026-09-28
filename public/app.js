@@ -645,12 +645,12 @@ function updateScore(assessment) {
 
 function renderConversation() {
   if (!state.messages.length) {
-    elements.conversationThread.innerHTML = '<div class="chat-empty-state">Select a scenario and start your conversation.</div>';
+    elements.conversationThread.innerHTML = '<div class="chat-empty-state"><span class="brand-mark brand-mark-watermark" aria-hidden="true"></span>Select a scenario and start your conversation.</div>';
     return;
   }
   elements.conversationThread.innerHTML = state.messages.map(message => `
     <article class="message-card ${message.role === 'user' ? 'user' : ''}">
-      <div class="message-speaker">${escapeHtml(message.displayName)}</div>
+      <div class="message-speaker">${message.displayName === 'AILA' ? '<span class="brand-mark brand-mark-xs" aria-hidden="true"></span>' : ''}${escapeHtml(message.displayName)}</div>
       <div class="message-content">${escapeHtml(message.text)}</div>
     </article>
   `).join('');
